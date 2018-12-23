@@ -1,0 +1,45 @@
+resources:
+- repo: self
+queue:
+  name: Hosted Ubuntu 1604
+steps:
+- task: AzureResourceGroupDeployment@2
+  displayName: 'Azure Deployment:Create Azure Container Registry'
+  inputs:
+    azureSubscription: 'tpQualityDevops-rg - Service Endpoint'
+
+    resourceGroupName: 'tpQualityDevops-rg'
+
+    location: 'South Central US'
+
+    templateLocation: 'URL of the file'
+
+    csmFileLink: 'https://raw.githubusercontent.com/Microsoft/devops-project-samples/057f6cc268a62922d012067d069d58684e967d0a/armtemplates/webapp-containers/containerRegistry-template.json'
+
+    overrideParameters: '-registryName "tpQualityDevopsacr" -registryLocation "South Central US" -registrySku "Standard"'
+
+
+- task: Docker@1
+  displayName: 'Build an image'
+  inputs:
+    azureSubscriptionEndpoint: 'tpQualityDevops-rg - Service Endpoint'
+
+    azureContainerRegistry: tpqualitydevopsacr.azurecr.io
+
+    dockerFile: '**/Dockerfile.cicd'
+
+    imageName: 'tpqualitydevops:$(Build.BuildId)'
+
+
+- task: Docker@1
+  displayName: 'Push an image'
+  inputs:
+    azureSubscriptionEndpoint: 'tpQualityDevops-rg - Service Endpoint'
+
+    azureContainerRegistry: '{"loginServer":"tpqualitydevopsacr.azurecr.io", "id" : "/subscriptions/520dc640-05c2-428c-8ac8-7245d0d96d17/resourceGroups/tpQualityDevops-rg/providers/Microsoft.ContainerRegistry/registries/tpQualityDevopsacr"}'
+
+    command: 'Push an image'
+
+    imageName: 'tpqualitydevops:$(Build.BuildId)'
+
+
